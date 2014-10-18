@@ -13,7 +13,7 @@ is it not that bad?
 
 This script will tell you. It needs an always up-to-date .org file with these
 deadlines and amounts of work left in the following format (look at the "raw"
-file for this, also c.f. Emacs' org-mode):
+README.md file for this, also c.f. Emacs' org-mode):
 
 ** <2014-10-23 Thu> Report						 :10:
 ** <2014-10-20 Mon> Read paper						  :2:
