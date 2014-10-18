@@ -40,7 +40,8 @@ does not count today as a work-day.
 If you have Gnuplot installed then it also shows you a graph of your cumulative
 workload as a function of number of days into the future. Suggested work-hours
 per day are simply the slopes of the green line for the respective days, and
-from the graph you'll immediately see what the algorithm does.
+from the graph (or the screenshot in the repo) you'll immediately see what the
+algorithm does.
 
 It also decides if
 
