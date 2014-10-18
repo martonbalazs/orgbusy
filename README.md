@@ -12,8 +12,8 @@ work still left with that one). Now, are you overloaded by these deadlines, or
 is it not that bad? 
 
 This script will tell you. It needs an always up-to-date .org file with these
-deadlines and amounts of work left in the following format (c.f. Emacs'
-org-mode):
+deadlines and amounts of work left in the following format (look at the "raw"
+file for this, also c.f. Emacs' org-mode):
 
 ** <2014-10-23 Thu> Report						 :10:
 ** <2014-10-20 Mon> Read paper						  :2:
@@ -33,6 +33,9 @@ The script shows you a plan of work-hours per day that
 
 - makes sure all deadlines are met;
 - gives you the most uniform workload possible in time with this constraint.
+
+In the output "Now" assumes that today is still available for work, "Evening"
+does not count today as a work-day.
 
 If you have Gnuplot installed then it also shows you a graph of your cumulative
 workload as a function of number of days into the future. Suggested work-hours
@@ -54,8 +57,13 @@ can be set in ~/.orgbusy/[file.oby] in the format
 "panic=4"
 
 (in separate lines). If no such file exists, defaults are 1.3 for leaveit and 4
-for panic. (Notice: leavit<=panic/3 implies peaceful weekends under all
+for panic. (Notice: leaveit<=panic/3 implies peaceful weekends under all
 circumstances. :-) )
+
+The PANIC warning also comes on if any job is due today. On the other hand it
+goes away even above the panic threshold if the "Evening" daily workload
+projected for the evening became smaller than the one at the beginning of
+today.
 
 Using as
 
