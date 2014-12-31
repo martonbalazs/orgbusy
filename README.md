@@ -12,22 +12,26 @@ work still left with that one). Now, are you overloaded by these deadlines, or
 is it not that bad? 
 
 This script will tell you. It needs an always up-to-date .org file with these
-deadlines and amounts of work left in the following format (look at the "raw"
-README.md file for this, also c.f. Emacs' org-mode):
+deadlines and amounts of work left in the following format (c.f. Emacs'
+org-mode):
 
+```
 ** <2014-10-23 Thu> Report						 :10:
 ** <2014-10-20 Mon> Read paper						  :2:
 ** <2014-10-21 Tue> Prepare meeting for Wednesday			  :1:
 ** <2014-10-21 Tue> Review project for Wednesday			  :3:
 ** <2014-10-21 Tue> Travelling all day					  :0:
 ** <2014-11-12 Wed> Large Project due					:100:
+```
 
 (the ** in front of the date is not important, the first "<" is searched for).
 Entries with ":0:" tag are considered days on which no work can be done. (Enter
 weekends this way manually if you don't work on weekends...) Once you have this
 file, use the script as
 
+```
 orgbusy [file.org]
+```
 
 The script shows you a plan of work-hours per day that
 
@@ -54,8 +58,10 @@ It also decides if
 The two thresholds for daily workload that separate the above three categories
 can be set in ~/.orgbusy/[file.oby] in the format
 
+```
 "leaveit=1.3"
 "panic=4"
+```
 
 (in separate lines). If no such file exists, defaults are 1.3 for leaveit and 4
 for panic. (Notice: leaveit<=panic/3 implies peaceful weekends under all
@@ -68,7 +74,9 @@ today.
 
 Using as
 
+```
 orgbusy [delay no of days] [file.org]
+```
 
 it looks into the future [delay no of days] many days assuming no work has been
 done by that date, but jobs with earlier deadlines are not counted. This way
