@@ -1,0 +1,96 @@
+#!/bin/bash
+# 2015.11.27
+
+# Usage: instask [file.org] [size] [charge]
+# Inserts a task of size [size] to your load so that the worst change in your daily charge is at most [charge].
+# Does not actually touch your org file, just tells you the date and shows the resulting situation.
+# Starts looking at tomorrow.
+# Format of the .org file: 
+# ** <2014-06-05 Thu> Stuff			  :1:
+# that is:
+# [anything but "<" here] <date> Stuff :[number of hrs required]:
+# number of hrs required can be any positive integer. It can also be 0, in which case "Stuff" is considered a full day programme that takes the given day out of those available for work (e.g., a conference or a family trip)
+# Weekends are not taken out but I guess could be treated easily.
+
+
+re='^[0-9]+$'
+real='^[0-9]+([.][0-9]+)?$'
+if [[ $# == 3 ]] && [[ $2 =~ $re ]] && [[ $3 =~ $real ]] ; then
+ filenor="$1"
+ size=$2
+ mch=$3
+else
+ echo "Usage: instask [filename] [size] [charge]"
+ exit
+fi
+
+ffront=${filenor%.*}
+file=$ffront.org
+
+if [ ! -f $file ] ; then
+ echo "Can't find the file $file."
+ exit
+fi
+
+k=v3$elej`date +%N`
+mkdir /tmp/$k
+chmod 700 /tmp/$k/
+
+cp "$file" /tmp/$k/
+cd /tmp/$k
+
+silentorgbusy "$file" > orig.txt
+
+i="0"
+while true; do
+ i=$[$i+1]
+ date=$(date +%Y-%m-%d -d "$(date) + $i day")
+
+ maxdiff=`cat <(cat "$file") <(echo "<$date>		>>>>> THIS IS YOUR NEW TASK <<<<<		 :$size:") > inorgtasknew_$ffront.org
+
+ silentorgbusy inorgtasknew_$ffront.org > inorgtasknew_$ffront.txt
+
+ paste -d\; orig.txt inorgtasknew_$ffront.txt |
+
+ awk -F\; ' BEGIN {
+  maxd=0
+  newworst=0
+ }
+ {
+  df=$2-$1
+  if (df>maxd) {
+   maxd=df
+   newworst=$2
+  }
+ }
+ END {
+  print(newworst)
+ }'`
+
+
+ comp=`echo "$maxdiff > $mch"|bc`
+
+ echo "$date $maxdiff"
+
+ if [ $comp -eq 0 ]
+ then
+  break
+ fi
+
+done
+
+orgbusy 1 "$file"
+
+orgbusy 1 inorgtasknew_$ffront.org
+
+echo "Insert your new task on $date"
+echo ""
+
+cd -
+l=1
+while [ -n "$l" ]; do
+ sleep 1
+ l=`lsof +d /tmp/$k`
+done
+
+rm -f -R /tmp/$k

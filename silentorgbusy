@@ -1,0 +1,237 @@
+#!/bin/bash
+# 2015.11.27
+
+# Usage: silentorgbusy [file.org]
+# Tells your average workload (hrs/days) to fulfill deadlines
+# Format of the .org file: 
+# ** <2014-06-05 Thu> Stuff			  :1:
+# that is:
+# [anything but "<" here] <date> Stuff :[number of hrs required]:
+# number of hrs required can be any positive integer. It can also be 0, in which case "Stuff" is considered a full day programme that takes the given day out of those available for work (e.g., a conference or a family trip)
+# Weekends are not taken out but I guess could be treated easily.
+
+
+re='^[0-9]+$'
+real='^[0-9]+([.][0-9]+)?$'
+if [ $# == 1 ] ; then
+ filenor="$1"
+else
+ echo "Usage: silentorgbusy [filename]"
+ exit
+fi
+
+ffront=${filenor%.*}
+file=$ffront.org
+
+if [ ! -f $file ] ; then
+ echo "Can't find the file $file."
+ exit
+fi
+
+cat $file |
+
+awk -F\: ' 
+{
+ if ((NF > 1) && ($(NF-1) + 0 == $(NF-1)) && ($NF == "")) {
+  printf($1)
+  for (i=2; i<NF; i+=1) printf(":"$i);
+  print(":"$NF)
+ };
+}' |
+
+sort |
+
+awk -F\: ' 
+{
+ printf($1)
+ for (i=2; i<=NF; i+=1) printf(":"$i);
+ print(";"$(NF-1))
+}' |
+
+awk -F\< '
+{
+ year=substr($2,1,4)
+ mo=substr($2,6,2)
+ day=substr($2,9,2)
+# print("year="year" month="mo" day="day";"$0)
+# dayno=(year-2013)*365+mo*30+day
+ if ((year % 4 == 0) && (year % 100 != 0)) leapy=1
+ else leapy=0;
+ if (mo == "01") mod=0;
+ if (mo == "02") mod=31;
+ if (mo == "03") mod=59+leapy;
+ if (mo == "04") mod=90+leapy;
+ if (mo == "05") mod=120+leapy;
+ if (mo == "06") mod=151+leapy;
+ if (mo == "07") mod=181+leapy;
+ if (mo == "08") mod=212+leapy;
+ if (mo == "09") mod=243+leapy;
+ if (mo == "10") mod=273+leapy;
+ if (mo == "11") mod=304+leapy;
+ if (mo == "12") mod=334+leapy;
+ dayno=mod+day
+ for (i=2012; i<year; i+=1) {
+  if ((i % 4 == 0) && (i % 100 != 0)) dayno=dayno+366
+  else dayno=dayno+365
+ }
+
+ print(dayno";"$0)
+}' |
+
+awk -F\; -v tyear="$(date +"%Y")" -v tmo="$(date +"%m")" -v tday="$(date +"%d")" ' BEGIN {
+# tyear=strftime("%Y")
+# tmo=strftime("%m")
+# tday=strftime("%d")
+ #print(tyear", "tmo", "tday)
+ #tdayno=(tyear-2013)*365+tmo*30+tday
+ if ((tyear % 4 == 0) && (tyear % 100 != 0)) tleapy=1
+ else tleapy=0;
+ if (tmo == 1) tmod=0;
+ if (tmo == 2) tmod=31;
+ if (tmo == 3) tmod=59+tleapy;
+ if (tmo == 4) tmod=90+tleapy;
+ if (tmo == 5) tmod=120+tleapy;
+ if (tmo == 6) tmod=151+tleapy;
+ if (tmo == 7) tmod=181+tleapy;
+ if (tmo == 8) tmod=212+tleapy;
+ if (tmo == 9) tmod=243+tleapy;
+ if (tmo == 10) tmod=273+tleapy;
+ if (tmo == 11) tmod=304+tleapy;
+ if (tmo == 12) tmod=334+tleapy;
+ tdayno=tmod+tday
+ for (i=2012; i<tyear; i+=1) {
+  if ((i % 4 == 0) && (i % 100 != 0)) tdayno=tdayno+366
+  else tdayno=tdayno+365
+ }
+# Put in 1 delay: we want to look at tomorrow.
+ tdayno=tdayno+1
+# print(tdayno)
+ maxdays=-1
+}
+{
+# Collect daily charge function p(days from today)
+
+# The day from today distance
+ dayft=$1-tdayno
+
+# Set the max distance looking into future, set zeros for dummy days
+ if (maxdays < dayft) {
+  for (i=maxdays+1; i<=dayft; i+=1) {
+   dummydays[i]=0;
+  }
+  maxdays=dayft;
+ }
+
+# Collect dummy days (those with 0)
+ if ($NF == 0) dummydays[dayft]=1;
+
+# Add the entry charge to the given day
+
+ if ($NF+0==$NF) {
+  if ((p[dayft]+0==p[dayft]) && (p[dayft]>0)) p[dayft]=p[dayft]+$NF;
+  else p[dayft]=$NF;
+ }
+ #for (i=2; i<=NF-2; i+=1) printf($i";");
+ #print($(NF-1))
+}
+END{
+## For now just print p
+#for (i=0; i<=maxdays; i+=1) {
+# printf(p[i]", ")
+#}
+#print("")
+
+p[-1]=0
+# Now repack tasks from dummy days; p[-1] is the overflow if today is dummy and first dummy sequence has tasks.
+ for (i=maxdays; i>=0; i-=1) {
+  if (dummydays[i] == 1) {
+   p[i-1]=p[i-1]+p[i]
+   p[i]=0
+  }
+ }
+## For now just print p
+#for (i=-1; i<=maxdays; i+=1) {
+# printf(p[i]", ")
+#}
+#print("")
+
+# Now collapse dummy days in p[.] to get q[.]
+
+ dtime=-1
+ tmpmaxd=maxdays
+ for (i=0; i<=tmpmaxd; i+=1) {
+  if (dummydays[i] == 0) {
+   dtime=dtime+1
+   q[dtime]=p[i]
+  }
+  else {
+   maxdays=maxdays-1
+  }
+ }
+
+# Maybe some stuff is left in the first dummy sequence. Dont forget about it
+
+ q[0]=q[0]+p[-1]
+
+## For now just print q
+#for (i=0; i<=maxdays; i+=1) {
+# printf(q[i]", ")
+#}
+#print("")
+
+###
+#MORNING
+###
+
+# Compute the cumulative charge function F(days from today)
+ for (i=0; i<=maxdays; i+=1) {
+  F[i]=0
+  for (j=0; j<=i; j+=1) F[i]=F[i]+q[j];
+ }
+
+## For now just print F
+#for (i=0; i<=maxdays; i+=1) {
+# printf(F[i]", ")
+#}
+#print("")
+
+# Put concave bound on F. First a pointer to see where the critical points are.
+# The origin is not necessarily critical: add imaginary point
+ pointer[0]=-1
+ F[-1]=0
+
+# This will show where the max of the pointer is right now
+ cvxday=-1
+
+# This will show how many points we have in the cvx stuff
+ cvxc=0
+
+ while (cvxday<maxdays) {
+# Max slope into the future
+  maxslp=0
+  cvxc=cvxc+1
+# Look at all future days
+  for (i=cvxday+1; i<=maxdays; i+=1) {
+   currslp=(F[i]-F[cvxday])/(i-cvxday);
+   if (currslp>=maxslp){
+    pointer[cvxc]=i
+    maxslp=currslp
+   }
+  }
+  cvxday=pointer[cvxc]
+ }
+
+## Print the pointer
+#for (i=0; i<=cvxc; i+=1) printf("no: %4.4f, day: %4.4f\n",i,pointer[i])
+
+# Print the slopes
+ for (i=0; i<=maxdays; i+=1) {
+# Find the pointer values around on our left
+  for (j=1; j<=cvxc; j+=1) {
+   if ((pointer[j-1]<i) && (pointer[j]>=i)) poicurr=j
+  }
+  ch=(F[pointer[poicurr-1]]-F[pointer[poicurr]])/(pointer[poicurr-1]-pointer[poicurr])
+  printf("%6.2f\n",ch)
+ }
+}'
+

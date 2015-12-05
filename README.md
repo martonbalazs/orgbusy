@@ -82,5 +82,18 @@ it looks into the future [delay no of days] many days assuming no work has been
 done by that date, but jobs with earlier deadlines are not counted. This way
 you can check if you can get a day or two off without much danger. 
 
+
+```
+inorgtask [file.org] [size] [charge]
+```
+
+is a scheduler. It tells you on which date, starting from tomorrow, a task of
+size [size] can be inserted so that no daily charge is raised above [charge].
+Some charges might already be higher than [charge] anyway, those of course
+stay, but the newly increased numbers for later dates will not go higher than
+[charge]. The org file is not changed. The script silentorgbusy is just an
+auxiliary one used here (it just outputs the charges as orgbusy 1).
+
+
 I'm no programmer, so please don't blame me on the quality of the code. :-)
 Licensed under GNU GPLv3.
