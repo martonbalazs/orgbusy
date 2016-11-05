@@ -79,6 +79,9 @@ while true; do
 
 done
 
+echo "[Enter]"
+read -n1 -s
+
 orgbusy 1 "$file"
 
 orgbusy 1 inorgtasknew_$ffront.org
