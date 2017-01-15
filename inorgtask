@@ -44,7 +44,8 @@ silentorgbusy "$file" > orig.txt
 i="0"
 while true; do
  i=$[$i+1]
- date=$(date +%Y-%m-%d -d "$(date) + $i day")
+ #date=$(date +%Y-%m-%d -d "$(date) + $i day")
+ date=$(date +%Y-%m-%d -d "+$i day")
 
  maxdiff=`cat <(cat "$file") <(echo "<$date>		>>>>> THIS IS YOUR NEW TASK <<<<<		 :$size:") > inorgtasknew_$ffront.org
 
@@ -93,7 +94,7 @@ cd -
 l=1
 while [ -n "$l" ]; do
  sleep 1
- l=`lsof +d /tmp/$k`
+ l=`lsof 2>/dev/null +d /tmp/$k`
 done
 
 rm -f -R /tmp/$k
