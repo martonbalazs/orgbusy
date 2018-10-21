@@ -91,10 +91,10 @@ echo "Insert your new task on $date"
 echo ""
 
 cd -
-l=1
-while [ -n "$l" ]; do
- sleep 1
- l=`lsof 2>/dev/null +d /tmp/$k`
-done
-
-rm -f -R /tmp/$k
+# l=1
+# while [ -n "$l" ]; do
+#  sleep 1
+#  l=`lsof 2>/dev/null +d /tmp/$k`
+# done
+# 
+# rm -f -R /tmp/$k
