@@ -94,6 +94,15 @@ stay, but the newly increased numbers for later dates will not go higher than
 [charge]. The org file is not changed. The script silentorgbusy is just an
 auxiliary one used here (it just outputs the charges as orgbusy 1).
 
+Finally,
+
+```
+orgdateocheck [file.org]
+```
+
+is a parser to check if todos are in time-order. I often mixed up the dates of
+todos and that came with the danger of missing deadlines. Now this script warns
+me if I ever do this again.
 
 I'm no programmer, so please don't blame me on the quality of the code. :-)
 Licensed under GNU GPLv3.

@@ -1,0 +1,60 @@
+#!/bin/bash
+#
+# Usage: orgdateocheck [file.org]
+#
+# Checks if leading date fields <yyyy-mm-dd> are out of order.
+# If a line ends with "datejump below" then the script won't complain for the next line.
+
+if [ ! -f $1 ] ; then
+ echo "Can't find the file $file."
+ exit
+fi
+
+awksays="$(cat $1 |
+
+awk -F\< ' BEGIN {
+ prevdayno=0
+ noprstring=""
+}
+{
+ if (NF != 1) {
+  year=substr($2,1,4)
+  mo=substr($2,6,2)
+  day=substr($2,9,2)
+  if ((year >1900) && (mo > 0) && (mo < 13) && (day > 0) && (day < 32)) {
+   if ((year % 4 == 0) && (year % 100 != 0)) leapy=1
+   else leapy=0;
+   if (mo == "01") mod=0;
+   if (mo == "02") mod=31;
+   if (mo == "03") mod=59+leapy;
+   if (mo == "04") mod=90+leapy;
+   if (mo == "05") mod=120+leapy;
+   if (mo == "06") mod=151+leapy;
+   if (mo == "07") mod=181+leapy;
+   if (mo == "08") mod=212+leapy;
+   if (mo == "09") mod=243+leapy;
+   if (mo == "10") mod=273+leapy;
+   if (mo == "11") mod=304+leapy;
+   if (mo == "12") mod=334+leapy;
+   dayno=mod+day
+   for (i=2012; i<year; i+=1) {
+    if ((i % 4 == 0) && (i % 100 != 0)) dayno=dayno+366
+    else dayno=dayno+365
+   }
+   #print($2"; "dayno)
+   if ((dayno < prevdayno) && (noprstring != "datejump below")) {
+    print("line "NR" date order problem: "$0)
+    #print(noprstring)
+   }
+   prevdayno=dayno
+  }
+ }
+ noprstring=substr($0,length($0)-13,length($0))
+}')"
+
+if [[ "$awksays" != "" ]]
+then
+ echo "$1"
+ echo "$awksays"
+ read -n1 -s
+fi
