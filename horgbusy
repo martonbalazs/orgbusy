@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Wrapping hrut -u woth orgbusy.
+# Usage: horgbusy [file.org]
+
+if [[ "$#" == "1" ]]
+then
+ filenor="$1"
+else
+ echo "Usage: horgbusy [filename]"
+ exit 1
+fi
+
+ffront=${filenor%.*}
+file=$ffront.org
+
+if [ ! -f $file ] ; then
+ echo "Can't find the file $file."
+ exit 1
+fi
+
+hrut -u "$ffront"
+read -p "[Enter]"
+orgbusy "$file"

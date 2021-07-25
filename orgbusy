@@ -1,5 +1,5 @@
 #!/bin/bash
-# 2014.09.21
+# 2021.06.20
 
 # Usage: orgbusy [file.org]
 # or
@@ -16,6 +16,7 @@
 # [anything but "<" here] <date> Stuff :[number of hrs required]:
 # number of hrs required can be any positive integer. It can also be 0, in which case "Stuff" is considered a full day programme that takes the given day out of those available for work (e.g., a conference or a family trip)
 # Weekends are not taken out but I guess could be treated easily.
+# Added hrut integration on [2021-06-20 Sun]. Orgbusy is a long task so deserves its own hrut file.
 
 
 re='^[0-9]+$'
@@ -36,6 +37,7 @@ file=$ffront.org
 obyfile="$HOME/.orgbusy/$ffront.oby"
 obymofile="$HOME"/.orgbusy/"$ffront"_mo.moby
 obygnuf="$HOME"/.orgbusy/"$ffront"_gnu.goby
+hrutfile="$HOME"/.hrut/"$ffront".pkl
 
 # Create dir of none
 if [ ! -d "$HOME/.orgbusy" ]; then
@@ -66,6 +68,18 @@ if [[ -f "$obymofile" && ! `find "$obymofile" -daystart -mtime +0` ]] ; then
  movalue=`cat $obymofile`
 else
  movalue="-1"
+fi
+
+# Read hrut if exists. We need hrut with the same filename. We work in percents as units. -1 means no hrut to be used.
+if [[ -f "$hrutfile" ]] && [[ "$dela" == "0" ]]
+then
+ hrutval=$(hrut $ffront)
+ if [[ ! $hrutval =~ $re ]]
+ then
+  hrutval="-1"
+ fi
+else
+ hrutval="-1"
 fi
 
 cat $file |
@@ -122,7 +136,7 @@ awk -F\< '
  print(dayno";"$0)
 }' |
 
-awk -F\; -v tyear="$(date +"%Y")" -v tmo="$(date +"%m")" -v tday="$(date +"%d")" -v dela="$dela" -v panic="$panic" -v leaveit="$leaveit" -v movalue="$movalue" -v obymofile="$obymofile" -v obygnuf="$obygnuf" ' BEGIN {
+awk -F\; -v tyear="$(date +"%Y")" -v tmo="$(date +"%m")" -v tday="$(date +"%d")" -v dela="$dela" -v panic="$panic" -v leaveit="$leaveit" -v movalue="$movalue" -v obymofile="$obymofile" -v obygnuf="$obygnuf" -v hrutval="$hrutval" ' BEGIN {
 # tyear=strftime("%Y")
 # tmo=strftime("%m")
 # tday=strftime("%d")
@@ -294,6 +308,20 @@ p[-1]=0
    printf "%6.2f",movalue > obymofile
   }
   printf("Morning was:	%6.2f hours/day.\n",movalue);
+ }
+
+# Add hrut correction
+ if (hrutval != -1){
+  if (movalue > F[0]){
+   hrutch=movalue*hrutval/100
+  }
+  else{
+   hrutch=F[0]*hrutval/100
+  }
+  if (hrutch < F[0]){
+   hrutch=F[0]
+  }
+  printf("WITH HRUT:	%6.2f HOURS FOR TODAY.\n",hrutch);
  }
 
  printf("Now:		%6.2f hours/day.\n",ch);

@@ -82,6 +82,13 @@ it looks into the future [delay no of days] many days assuming no work has been
 done by that date, but jobs with earlier deadlines are not counted. This way
 you can check if you can get a day or two off without much danger. 
 
+The wrapper script
+
+```
+horgbusy [file.org]
+```
+
+will invoke `hrut` to ask you how you feel first, and `orgbusy` will then indicate the modified recommendation that respects that. See my repo `hrut` to make sense of this.
 
 ```
 inorgtask [file.org] [size] [charge]
